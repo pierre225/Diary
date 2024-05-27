@@ -47,7 +47,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.10"
     }
     packaging {
         resources {
@@ -72,5 +72,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
+    implementation(libs.kotlin.serialization)
     ksp(libs.room.compiler)
 }

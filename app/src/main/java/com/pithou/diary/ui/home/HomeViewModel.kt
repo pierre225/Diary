@@ -26,7 +26,10 @@ class HomeViewModel(
     }
 
     private fun onDayClick(localDate: LocalDate) {
-        viewModelScope.launch { _homeState.emit(HomeState.Input(localDate)) }
+        viewModelScope.launch {
+            val record = repository.getRecords().firstOrNull { it.date == localDate }
+            _homeState.emit(HomeState.Input(localDate, record))
+        }
     }
 
     private fun fetchRecords() = viewModelScope.launch {
@@ -36,11 +39,11 @@ class HomeViewModel(
     private fun onSaveRecord(record: DayRecord) {
         viewModelScope.launch {
             repository.saveRecord(record)
-            _homeState.emit(HomeState.Idle)
+            fetchRecords()
         }
     }
 
     private fun onDismissBottomSheet() {
-        viewModelScope.launch { _homeState.emit(HomeState.Idle) }
+        fetchRecords()
     }
 }

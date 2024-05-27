@@ -50,7 +50,7 @@ fun HomeScreen(
         val startMonth = remember { currentMonth.minusMonths(24) } // Adjust as needed
         val endMonth = remember { currentMonth.plusMonths(3) } // Adjust as needed
 
-        val state = rememberCalendarState(
+        val calendarState = rememberCalendarState(
             startMonth = startMonth,
             endMonth = endMonth,
             firstVisibleMonth = currentMonth,
@@ -58,14 +58,19 @@ fun HomeScreen(
         )
 
         VerticalCalendar(
-            state = state,
-            dayContent = { Day(it, onEvent, records) },
+            state = calendarState,
+            dayContent = { day ->
+                Day(
+                    day = day,
+                    onEvent = onEvent,
+                    record = records.firstOrNull { it.date == day.date }
+                )},
             monthHeader = { MonthHeader(month = it) }
         )
     }
     if (state is HomeState.Input)
         ModalBottomSheet(onDismissRequest = { onEvent(HomeEvent.OnDismissBottomSheet) }) {
-            InputContent(onEvent, state.date)
+            InputContent(onEvent, state.date, state.record)
         }
 }
 
@@ -73,7 +78,7 @@ fun HomeScreen(
 fun Day(
     day: CalendarDay,
     onEvent: (HomeEvent) -> Unit,
-    records: List<DayRecord>,
+    record: DayRecord?,
 ) {
     Box(
         modifier = Modifier
@@ -81,6 +86,7 @@ fun Day(
             .background(
                 when {
                     day.date == LocalDate.now() -> Color.Blue
+                    record != null -> Color.Green
                     else -> Color.Transparent
                 }
             )
@@ -97,18 +103,18 @@ fun MonthHeader(month: CalendarMonth) {
 }
 
 @Composable
-fun InputContent(onEvent: (HomeEvent) -> Unit, date: LocalDate) {
-    var entry by remember { mutableStateOf("") }
-    var reason1 by remember { mutableStateOf("") }
-    var reason2 by remember { mutableStateOf("") }
-    var reason3 by remember { mutableStateOf("") }
+fun InputContent(onEvent: (HomeEvent) -> Unit, date: LocalDate, record: DayRecord?) {
+    var entry by remember { mutableStateOf(record?.entry) }
+    var reason1 by remember { mutableStateOf(record?.reasons?.get(0) ?: "") }
+    var reason2 by remember { mutableStateOf(record?.reasons?.get(1) ?: "") }
+    var reason3 by remember { mutableStateOf(record?.reasons?.get(2) ?: "") }
 
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
         TextField(
             label = { Text(text = date.toString())},
-            value = entry,
+            value = entry ?: "",
             onValueChange = { entry = it} )
         Text(text = "3 raisons")
         TextField(
@@ -121,13 +127,14 @@ fun InputContent(onEvent: (HomeEvent) -> Unit, date: LocalDate) {
             value = reason3,
             onValueChange = { reason3 = it} )
         // Add your content here
-        Button(onClick = {
+        Button(
+            modifier = Modifier.padding(30.dp),
+            onClick = {
             onEvent(
                 HomeEvent.OnSaveRecord(
                     DayRecord(
-                        id = "laoreet",
-                        date = "dis",
-                        entry = entry,
+                        date = date,
+                        entry = entry ?: "",
                         reasons = listOf(reason1, reason2, reason3)
                     )
                 )

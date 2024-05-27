@@ -6,5 +6,5 @@ import java.time.LocalDate
 sealed interface HomeState {
     data object Idle: HomeState
     data class Data(val records: List<DayRecord>): HomeState
-    data class Input(val date: LocalDate): HomeState
+    data class Input(val date: LocalDate, val record: DayRecord?): HomeState
 }
